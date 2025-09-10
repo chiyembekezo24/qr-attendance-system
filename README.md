@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Efficient and Effective Class Attendance QR Code System
 
 A comprehensive QR code-based attendance system that allows lecturers to generate QR codes for courses and students to scan them to mark their attendance automatically.
@@ -279,3 +280,6 @@ For issues and questions:
 ---
 
 **Note**: This system is designed for educational purposes. For production use, consider additional security measures and user authentication.
+=======
+# qr-attendance-system
+>>>>>>> 3d4a2cbd5ac56edadbef4b67bfae4e693facaacd

@@ -205,6 +205,66 @@ app.get('/api/attendance', async (req, res) => {
   }
 });
 
+// Get attendance session report
+app.get('/api/attendance/:courseId/session-report', async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const { date } = req.query;
+    
+    const query = { courseId };
+    if (date) query.date = date;
+
+    const attendance = await Attendance.find(query)
+      .populate('courseId', 'name instructor')
+      .sort({ time: 1 });
+
+    const course = await Course.findById(courseId);
+    
+    // Calculate session statistics
+    const totalStudents = attendance.length;
+    const presentStudents = attendance.filter(record => record.status === 'Present').length;
+    const absentStudents = totalStudents - presentStudents;
+    const attendanceRate = totalStudents > 0 ? ((presentStudents / totalStudents) * 100).toFixed(1) : 0;
+    
+    // Get unique students who attended
+    const uniqueStudents = [...new Set(attendance.map(record => record.studentIdNumber))];
+    const uniquePresentCount = uniqueStudents.length;
+    
+    // Get time range
+    const times = attendance.map(record => record.time).sort();
+    const firstAttendance = times[0] || 'N/A';
+    const lastAttendance = times[times.length - 1] || 'N/A';
+    
+    const sessionReport = {
+      course: {
+        name: course.name,
+        instructor: course.instructor,
+        date: date || moment().format('YYYY-MM-DD')
+      },
+      statistics: {
+        totalStudents: totalStudents,
+        presentStudents: presentStudents,
+        absentStudents: absentStudents,
+        attendanceRate: attendanceRate + '%',
+        uniqueStudents: uniquePresentCount,
+        firstAttendance: firstAttendance,
+        lastAttendance: lastAttendance
+      },
+      attendance: attendance.map(record => ({
+        studentName: record.studentName,
+        studentId: record.studentIdNumber,
+        time: record.time,
+        status: record.status,
+        location: record.location
+      }))
+    };
+
+    res.json(sessionReport);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Download attendance as CSV
 app.get('/api/attendance/:courseId/download', async (req, res) => {
   try {
@@ -284,6 +344,73 @@ app.get('/api/dashboard', async (req, res) => {
       todayAttendance,
       avgAttendance
     });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get recent activity
+app.get('/api/recent-activity', async (req, res) => {
+  try {
+    const activities = [];
+    
+    // Get recent courses (last 3)
+    const recentCourses = await Course.find()
+      .sort({ createdAt: -1 })
+      .limit(3)
+      .select('name instructor createdAt');
+    
+    recentCourses.forEach(course => {
+      activities.push({
+        type: 'course_created',
+        icon: 'fas fa-book',
+        title: 'New course added',
+        description: `${course.name} by ${course.instructor}`,
+        timestamp: course.createdAt,
+        time: moment(course.createdAt).fromNow()
+      });
+    });
+    
+    // Get recent students (last 3)
+    const recentStudents = await Student.find()
+      .sort({ createdAt: -1 })
+      .limit(3)
+      .select('name studentId createdAt');
+    
+    recentStudents.forEach(student => {
+      activities.push({
+        type: 'student_added',
+        icon: 'fas fa-user-plus',
+        title: 'New student added',
+        description: `${student.name} (ID: ${student.studentId})`,
+        timestamp: student.createdAt,
+        time: moment(student.createdAt).fromNow()
+      });
+    });
+    
+    // Get recent attendance records (last 5)
+    const recentAttendance = await Attendance.find()
+      .populate('courseId', 'name')
+      .sort({ timestamp: -1 })
+      .limit(5)
+      .select('studentName studentIdNumber status courseId timestamp');
+    
+    recentAttendance.forEach(attendance => {
+      activities.push({
+        type: 'attendance_marked',
+        icon: attendance.status === 'Present' ? 'fas fa-check-circle' : 'fas fa-times-circle',
+        title: 'Attendance marked',
+        description: `${attendance.studentName} marked ${attendance.status.toLowerCase()} for ${attendance.courseId.name}`,
+        timestamp: attendance.timestamp,
+        time: moment(attendance.timestamp).fromNow()
+      });
+    });
+    
+    // Sort all activities by timestamp (most recent first)
+    activities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    
+    // Return only the 10 most recent activities
+    res.json(activities.slice(0, 10));
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

@@ -205,6 +205,9 @@
                         <button class="btn btn-secondary" onclick="showModal('scanQRModal')">
                             <i class="fas fa-camera"></i> Scan QR Code
                         </button>
+                        <button class="btn btn-success" onclick="showModal('sessionReportModal')">
+                            <i class="fas fa-chart-line"></i> Session Report
+                        </button>
                         <a href="/student" class="btn btn-secondary" target="_blank">
                             <i class="fas fa-external-link-alt"></i> Student Scanner
                         </a>
@@ -367,6 +370,39 @@
             </div>
             <div id="reportDetailContent" class="report-detail">
                 <!-- Will be populated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Session Report Modal -->
+    <div id="sessionReportModal" class="modal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h3><i class="fas fa-chart-line"></i> Generate Session Report</h3>
+                <span class="close" onclick="closeModal('sessionReportModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="sessionReportForm" class="modal-form">
+                    <div class="form-group">
+                        <label for="sessionCourseSelect">Select Course</label>
+                        <select id="sessionCourseSelect" name="courseId" required>
+                            <option value="">Select a course...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="sessionDate">Date</label>
+                        <input type="date" id="sessionDate" name="date" value="" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('sessionReportModal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-chart-line"></i> Generate Report
+                        </button>
+                    </div>
+                </form>
+                <div id="sessionReportContent" class="session-report-content" style="display: none;">
+                    <!-- Session report will be displayed here -->
+                </div>
             </div>
         </div>
     </div>

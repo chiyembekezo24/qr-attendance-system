@@ -38,6 +38,7 @@ function setupEventListeners() {
     document.getElementById('addStudentForm').addEventListener('submit', handleAddStudent);
     document.getElementById('generateQRForm').addEventListener('submit', handleGenerateQR);
     document.getElementById('scanQRForm').addEventListener('submit', handleScanQR);
+    document.getElementById('sessionReportForm').addEventListener('submit', handleSessionReport);
 
     // Modal close events
     document.querySelectorAll('.close').forEach(closeBtn => {
@@ -645,45 +646,30 @@ async function downloadAllReports() {
 async function loadRecentActivity() {
     const container = document.getElementById('recentActivity');
     
-    // This would typically come from an API endpoint
-    const activities = [
-        {
-            icon: 'fas fa-user-plus',
-            title: 'New student registered',
-            description: 'John Doe registered for Computer Science 101',
-            time: '2 minutes ago'
-        },
-        {
-            icon: 'fas fa-qrcode',
-            title: 'QR Code generated',
-            description: 'QR code generated for Mathematics 201',
-            time: '15 minutes ago'
-        },
-        {
-            icon: 'fas fa-check-circle',
-            title: 'Attendance marked',
-            description: '25 students marked present for Physics 101',
-            time: '1 hour ago'
+    try {
+        const activities = await apiCall('/api/recent-activity');
+        
+        if (activities.length === 0) {
+            container.innerHTML = '<p class="no-data">No recent activity</p>';
+            return;
         }
-    ];
-    
-    if (activities.length === 0) {
-        container.innerHTML = '<p class="no-data">No recent activity</p>';
-        return;
+        
+        container.innerHTML = activities.map(activity => `
+            <div class="activity-item">
+                <div class="activity-icon">
+                    <i class="${activity.icon}"></i>
+                </div>
+                <div class="activity-content">
+                    <h4>${activity.title}</h4>
+                    <p>${activity.description}</p>
+                </div>
+                <div class="activity-time">${activity.time}</div>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Failed to load recent activity:', error);
+        container.innerHTML = '<p class="no-data">Failed to load recent activity</p>';
     }
-    
-    container.innerHTML = activities.map(activity => `
-        <div class="activity-item">
-            <div class="activity-icon">
-                <i class="${activity.icon}"></i>
-            </div>
-            <div class="activity-content">
-                <h4>${activity.title}</h4>
-                <p>${activity.description}</p>
-            </div>
-            <div class="activity-time">${activity.time}</div>
-        </div>
-    `).join('');
 }
 
 // Load attendance percentages
@@ -807,6 +793,201 @@ function showMessage(message, type = 'info') {
             messageDiv.remove();
         }
     }, 5000);
+}
+
+// Handle session report generation
+async function handleSessionReport(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const courseId = formData.get('courseId');
+    const date = formData.get('date');
+    
+    if (!courseId || !date) {
+        showMessage('Please select a course and date', 'error');
+        return;
+    }
+    
+    try {
+        showLoading(true);
+        
+        const response = await fetch(`/api/attendance/${courseId}/session-report?date=${date}`);
+        const report = await response.json();
+        
+        if (response.ok) {
+            displaySessionReport(report);
+        } else {
+            throw new Error(report.error || 'Failed to generate session report');
+        }
+    } catch (error) {
+        console.error('Session report error:', error);
+        showMessage('Failed to generate session report: ' + error.message, 'error');
+    } finally {
+        showLoading(false);
+    }
+}
+
+// Display session report
+function displaySessionReport(report) {
+    const content = document.getElementById('sessionReportContent');
+    
+    content.innerHTML = `
+        <div class="session-report">
+            <div class="report-header">
+                <h3><i class="fas fa-chart-line"></i> ${report.course.name} - Session Report</h3>
+                <p class="report-date">Date: ${report.course.date} | Instructor: ${report.course.instructor}</p>
+            </div>
+            
+            <div class="report-stats">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h4>${report.statistics.totalStudents}</h4>
+                        <p>Total Records</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h4>${report.statistics.presentStudents}</h4>
+                        <p>Present</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h4>${report.statistics.absentStudents}</h4>
+                        <p>Absent</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-percentage"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h4>${report.statistics.attendanceRate}</h4>
+                        <p>Attendance Rate</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h4>${report.statistics.uniqueStudents}</h4>
+                        <p>Unique Students</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="report-details">
+                <div class="time-range">
+                    <h4><i class="fas fa-clock"></i> Session Time Range</h4>
+                    <p>First Attendance: ${report.statistics.firstAttendance}</p>
+                    <p>Last Attendance: ${report.statistics.lastAttendance}</p>
+                </div>
+                
+                <div class="attendance-list">
+                    <h4><i class="fas fa-list"></i> Attendance Records</h4>
+                    <div class="attendance-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Student Name</th>
+                                    <th>Student ID</th>
+                                    <th>Time</th>
+                                    <th>Status</th>
+                                    <th>Location</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${report.attendance.map(record => `
+                                    <tr>
+                                        <td>${record.studentName}</td>
+                                        <td>${record.studentId}</td>
+                                        <td>${record.time}</td>
+                                        <td><span class="status ${record.status.toLowerCase()}">${record.status}</span></td>
+                                        <td>${record.location || 'N/A'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="report-actions">
+                <button class="btn btn-primary" onclick="downloadSessionReport('${report.course._id || report.course.name}', '${report.course.date}')">
+                    <i class="fas fa-download"></i> Download CSV
+                </button>
+                <button class="btn btn-secondary" onclick="printSessionReport()">
+                    <i class="fas fa-print"></i> Print Report
+                </button>
+            </div>
+        </div>
+    `;
+    
+    content.style.display = 'block';
+}
+
+// Download session report as CSV
+async function downloadSessionReport(courseId, date) {
+    try {
+        const response = await fetch(`/api/attendance/${courseId}/download?date=${date}`);
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `session_report_${date}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } else {
+            throw new Error('Failed to download report');
+        }
+    } catch (error) {
+        console.error('Download error:', error);
+        showMessage('Failed to download report: ' + error.message, 'error');
+    }
+}
+
+// Print session report
+function printSessionReport() {
+    const reportContent = document.getElementById('sessionReportContent');
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <html>
+            <head>
+                <title>Session Report</title>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 20px; }
+                    .report-header { text-align: center; margin-bottom: 20px; }
+                    .report-stats { display: flex; justify-content: space-around; margin: 20px 0; }
+                    .stat-card { text-align: center; padding: 10px; border: 1px solid #ddd; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                    th { background-color: #f2f2f2; }
+                </style>
+            </head>
+            <body>
+                ${reportContent.innerHTML}
+            </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
 }
 
 // Utility functions

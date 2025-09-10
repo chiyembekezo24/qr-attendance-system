@@ -277,7 +277,7 @@ function handleQRDetected(qrData) {
         }
         
         currentQRData = parsedData;
-        showCourseInfo(parsedData);
+        // Go directly to attendance form after QR scanning
         showSection('studentInfoSection');
     } catch (error) {
         console.error('Invalid QR data:', error);
@@ -330,7 +330,7 @@ async function handleManualEntry(e) {
         }
         
         currentQRData = parsedData;
-        showCourseInfo(parsedData);
+        // Go directly to attendance form after manual entry
         showSection('studentInfoSection');
     } catch (error) {
         console.error('Invalid QR data:', error);

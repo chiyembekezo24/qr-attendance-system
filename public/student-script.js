@@ -230,6 +230,18 @@ function detectQRPattern(imageData) {
     return darkPixels > (data.length / 4) * 0.3;
 }
 
+// Handle manual QR code entry from clipboard or manual input
+function handleManualQRInput(qrText) {
+    try {
+        // Try to parse the QR code data
+        const parsedData = JSON.parse(qrText);
+        handleQRDetected(parsedData);
+    } catch (error) {
+        // If it's not valid JSON, show error
+        showError('Invalid QR code data. Please make sure you copied the complete QR code data.');
+    }
+}
+
 // Generate mock QR data for testing
 function generateMockQRData() {
     return JSON.stringify({
@@ -245,13 +257,31 @@ function handleQRDetected(qrData) {
     stopQRScanning();
     
     try {
-        const parsedData = JSON.parse(qrData);
+        // Handle both raw JSON string and already parsed data
+        let parsedData;
+        if (typeof qrData === 'string') {
+            parsedData = JSON.parse(qrData);
+        } else {
+            parsedData = qrData;
+        }
+        
+        // Validate the QR data structure
+        if (!parsedData.courseId || !parsedData.courseName) {
+            throw new Error('Invalid QR code format');
+        }
+        
+        // Check if QR code is expired
+        if (parsedData.expiresAt && new Date() > new Date(parsedData.expiresAt)) {
+            showError('QR code has expired. Please ask your instructor for a new one.');
+            return;
+        }
+        
         currentQRData = parsedData;
         showCourseInfo(parsedData);
         showSection('studentInfoSection');
     } catch (error) {
         console.error('Invalid QR data:', error);
-        showError('Invalid QR code. Please try again.');
+        showError('Invalid QR code. Please make sure you scanned the correct QR code from your instructor.');
     }
 }
 
@@ -282,14 +312,29 @@ async function handleManualEntry(e) {
         return;
     }
     
+    // Clean the QR data (remove any extra characters)
+    const cleanQRData = qrData.trim();
+    
     try {
-        const parsedData = JSON.parse(qrData);
+        const parsedData = JSON.parse(cleanQRData);
+        
+        // Validate the QR data structure
+        if (!parsedData.courseId || !parsedData.courseName) {
+            throw new Error('Invalid QR code format');
+        }
+        
+        // Check if QR code is expired
+        if (parsedData.expiresAt && new Date() > new Date(parsedData.expiresAt)) {
+            showError('QR code has expired. Please ask your instructor for a new one.');
+            return;
+        }
+        
         currentQRData = parsedData;
         showCourseInfo(parsedData);
         showSection('studentInfoSection');
     } catch (error) {
         console.error('Invalid QR data:', error);
-        showError('Invalid QR code data. Please check and try again.');
+        showError('Invalid QR code data. Please make sure you copied the complete QR code data from your instructor.');
     }
 }
 

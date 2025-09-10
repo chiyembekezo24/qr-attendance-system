@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Scanner - QR Attendance System</title>
+    <link rel="stylesheet" href="/student-styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1><i class="fas fa-qrcode"></i> Student Scanner</h1>
+                <p>Scan QR code to mark your attendance</p>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- QR Code Required Section -->
+            <div id="qrRequiredSection" class="qr-required-section">
+                <div class="qr-required-card">
+                    <div class="qr-required-icon">
+                        <i class="fas fa-qrcode"></i>
+                    </div>
+                    <h2>QR Code Required</h2>
+                    <p>Please scan a QR code from your instructor to access the attendance form.</p>
+                    <div class="qr-required-actions">
+                        <button id="startCameraBtn" class="btn btn-primary">
+                            <i class="fas fa-camera"></i> Scan QR Code
+                        </button>
+                        <button id="manualEntryBtn" class="btn btn-secondary">
+                            <i class="fas fa-keyboard"></i> Manual Entry
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scanner Section -->
+            <div id="scannerSection" class="scanner-section" style="display: none;">
+                <div class="scanner-card">
+                    <div class="scanner-header">
+                        <h2><i class="fas fa-camera"></i> QR Code Scanner</h2>
+                        <p>Point your camera at the QR code displayed by your instructor</p>
+                    </div>
+                    
+                    <div class="scanner-container">
+                        <div id="scannerArea" class="scanner-area">
+                            <div class="scanner-placeholder">
+                                <i class="fas fa-qrcode"></i>
+                                <p>Camera will appear here</p>
+                                <button id="startCameraBtn2" class="btn btn-primary">
+                                    <i class="fas fa-camera"></i> Start Camera
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="scanner-overlay">
+                            <div class="scanner-frame"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="scanner-controls">
+                        <button id="switchCameraBtn" class="btn btn-secondary" style="display: none;">
+                            <i class="fas fa-sync-alt"></i> Switch Camera
+                        </button>
+                        <button id="stopCameraBtn" class="btn btn-danger" style="display: none;">
+                            <i class="fas fa-stop"></i> Stop Camera
+                        </button>
+                        <button id="backToQRBtn" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Manual Entry Section -->
+            <div id="manualEntrySection" class="manual-entry-section" style="display: none;">
+                <div class="manual-entry-card">
+                    <h3><i class="fas fa-keyboard"></i> Manual Entry</h3>
+                    <p>Enter the QR code data provided by your instructor</p>
+                    
+                    <form id="manualEntryForm" class="manual-form">
+                        <div class="form-group">
+                            <label for="qrDataInput">QR Code Data</label>
+                            <textarea 
+                                id="qrDataInput" 
+                                name="qrData" 
+                                placeholder="Paste the QR code data here..."
+                                rows="3"
+                                required
+                            ></textarea>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" id="backToQRBtn2" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-check"></i> Continue
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Student Information Section -->
+            <div id="studentInfoSection" class="student-info-section" style="display: none;">
+                <div class="student-info-card">
+                    <div class="form-header">
+                        <h2><i class="fas fa-user-check"></i> Mark Attendance</h2>
+                        <p class="form-subtitle">Please provide your details to complete attendance</p>
+                    </div>
+                    
+                    <form id="studentInfoForm" class="student-form">
+                        <div class="form-question">
+                            <label for="studentName">Your Name</label>
+                            <div class="input-container">
+                                <input 
+                                    type="text" 
+                                    id="studentName" 
+                                    name="studentName" 
+                                    placeholder="Enter your full name"
+                                    required
+                                >
+                            </div>
+                        </div>
+                        
+                        <div class="form-question">
+                            <label for="studentId">Student ID</label>
+                            <div class="input-container">
+                                <input 
+                                    type="text" 
+                                    id="studentId" 
+                                    name="studentId" 
+                                    placeholder="Enter your student ID"
+                                    required
+                                >
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn-submit">
+                                Submit
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Course Info Section -->
+            <div id="courseInfoSection" class="course-info-section" style="display: none;">
+                <div class="course-info-card">
+                    <h3><i class="fas fa-book"></i> Course Information</h3>
+                    <div id="courseInfo" class="course-details">
+                        <!-- Course details will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Success Section -->
+            <div id="successSection" class="success-section" style="display: none;">
+                <div class="success-card">
+                    <div class="success-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h3>Attendance Marked Successfully!</h3>
+                    <p id="successMessage">Your attendance has been recorded.</p>
+                    <div class="success-details" id="successDetails">
+                        <!-- Success details will be populated here -->
+                    </div>
+                    <button id="markAnotherBtn" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Mark Another Attendance
+                    </button>
+                </div>
+            </div>
+
+            <!-- Error Section -->
+            <div id="errorSection" class="error-section" style="display: none;">
+                <div class="error-card">
+                    <div class="error-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h3>Error</h3>
+                    <p id="errorMessage">Something went wrong. Please try again.</p>
+                    <button id="tryAgainBtn" class="btn btn-primary">
+                        <i class="fas fa-redo"></i> Try Again
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2024 QR Attendance System. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p>Processing...</p>
+        </div>
+    </div>
+
+    <script src="/student-script.js"></script>
+</body>
+</html>

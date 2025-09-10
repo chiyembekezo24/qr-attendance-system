@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: qr-attendance-system
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        value: mongodb+srv://dcdaka4:zRcEpN!96.epUUv@cluster0.ocodntp.mongodb.net/qr-attendance?retryWrites=true&w=majority&appName=Cluster0
+      - key: PORT
+        value: 3000

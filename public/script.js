@@ -420,19 +420,6 @@ function displayQRCode(qrData) {
     const qrImage = document.getElementById('qrCodeImage');
     
     qrImage.innerHTML = `<img src="${qrData.qrCode}" alt="QR Code" />`;
-    
-    // Add URL display if available
-    if (qrData.qrUrl) {
-        const urlDisplay = document.createElement('div');
-        urlDisplay.className = 'qr-url-display';
-        urlDisplay.innerHTML = `
-            <p><strong>QR Code URL:</strong></p>
-            <p style="word-break: break-all; font-size: 0.9rem; color: #666; background: #f5f5f5; padding: 10px; border-radius: 5px;">${qrData.qrUrl}</p>
-            <p style="font-size: 0.8rem; color: #888;">Students can scan this QR code or visit this URL directly</p>
-        `;
-        qrImage.appendChild(urlDisplay);
-    }
-    
     qrDisplay.style.display = 'block';
 }
 

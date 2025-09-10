@@ -88,14 +88,20 @@ app.post('/api/generate-qr', async (req, res) => {
     const qrData = {
       courseId: course._id,
       courseName: course.name,
+      instructor: course.instructor,
       timestamp: new Date(),
       expiresAt: new Date(Date.now() + duration * 60 * 1000) // 5 minutes default
     };
 
-    const qrCodeDataURL = await QRCode.toDataURL(JSON.stringify(qrData));
+    // Create a URL that redirects to student page with QR data
+    const baseUrl = req.protocol + '://' + req.get('host');
+    const qrUrl = `${baseUrl}/student?data=${encodeURIComponent(JSON.stringify(qrData))}`;
+    
+    const qrCodeDataURL = await QRCode.toDataURL(qrUrl);
     
     res.json({
       qrCode: qrCodeDataURL,
+      qrUrl: qrUrl,
       course: course,
       expiresAt: qrData.expiresAt
     });

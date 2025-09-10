@@ -14,20 +14,35 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Initialize application
 function initializeApp() {
-    // Check if device supports camera
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        showCameraError('Camera not supported on this device');
-        return;
-    }
+    // Check for QR data in URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const qrData = urlParams.get('data');
     
-    // Check for HTTPS (required for camera access)
-    if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
-        showCameraError('Camera access requires HTTPS. Please use a secure connection.');
-        return;
+    if (qrData) {
+        // Process QR data from URL
+        try {
+            const parsedData = JSON.parse(decodeURIComponent(qrData));
+            handleQRDetected(parsedData);
+        } catch (error) {
+            console.error('Invalid QR data in URL:', error);
+            showError('Invalid QR code data. Please scan a valid QR code.');
+        }
+    } else {
+        // Check if device supports camera
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            showCameraError('Camera not supported on this device');
+            return;
+        }
+        
+        // Check for HTTPS (required for camera access)
+        if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+            showCameraError('Camera access requires HTTPS. Please use a secure connection.');
+            return;
+        }
+        
+        // Show QR required section by default
+        showSection('qrRequiredSection');
     }
-    
-    // Show QR required section by default
-    showSection('qrRequiredSection');
 }
 
 // Setup event listeners

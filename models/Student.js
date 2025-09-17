@@ -12,12 +12,6 @@ const studentSchema = new mongoose.Schema({
     unique: true,
     trim: true
   },
-  email: {
-    type: String,
-    required: true,
-    trim: true,
-    lowercase: true
-  },
   enrolledCourses: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Course'

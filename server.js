@@ -90,15 +90,10 @@ app.get('/api/students', async (req, res) => {
 // Create new student
 app.post('/api/students', async (req, res) => {
   try {
-    // Check for duplicate student ID or email
+    // Check for duplicate student ID only
     const existingStudentById = await Student.findOne({ studentId: req.body.studentId });
     if (existingStudentById) {
       return res.status(400).json({ error: `Student ID "${req.body.studentId}" already exists` });
-    }
-    
-    const existingStudentByEmail = await Student.findOne({ email: req.body.email });
-    if (existingStudentByEmail) {
-      return res.status(400).json({ error: `Email "${req.body.email}" already exists` });
     }
     
     const student = new Student(req.body);

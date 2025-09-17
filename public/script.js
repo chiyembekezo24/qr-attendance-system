@@ -190,7 +190,6 @@ function displayStudents() {
         <div class="card">
             <h3>${student.name}</h3>
             <p><strong>Student ID:</strong> ${student.studentId}</p>
-            <p><strong>Email:</strong> ${student.email}</p>
             <p><strong>Enrolled Courses:</strong> ${student.enrolledCourses ? student.enrolledCourses.length : 0}</p>
             <div class="card-actions">
                 <button class="btn btn-secondary" onclick="viewStudentAttendance('${student._id}')">

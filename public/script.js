@@ -158,6 +158,9 @@ function displayCourses() {
                 <button class="btn btn-secondary" onclick="viewCourseAttendance('${course._id}')">
                     <i class="fas fa-eye"></i> View Attendance
                 </button>
+                <button class="btn btn-danger" onclick="deleteCourse('${course._id}', '${course.name}')">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
             </div>
         </div>
     `).join('');
@@ -192,6 +195,9 @@ function displayStudents() {
             <div class="card-actions">
                 <button class="btn btn-secondary" onclick="viewStudentAttendance('${student._id}')">
                     <i class="fas fa-chart-line"></i> View Attendance
+                </button>
+                <button class="btn btn-danger" onclick="deleteStudent('${student._id}', '${student.name}')">
+                    <i class="fas fa-trash"></i> Delete
                 </button>
             </div>
         </div>
@@ -361,6 +367,20 @@ async function handleAddStudent(e) {
     
     const formData = new FormData(e.target);
     const studentData = Object.fromEntries(formData);
+    
+    // Check for duplicate student ID or email
+    const existingStudentById = students.find(s => s.studentId === studentData.studentId);
+    const existingStudentByEmail = students.find(s => s.email === studentData.email);
+    
+    if (existingStudentById) {
+        showMessage(`Student ID "${studentData.studentId}" already exists!`, 'error');
+        return;
+    }
+    
+    if (existingStudentByEmail) {
+        showMessage(`Email "${studentData.email}" already exists!`, 'error');
+        return;
+    }
     
     // Convert courseIds to array
     if (studentData.courseIds) {
@@ -538,6 +558,52 @@ function viewStudentAttendance(studentId) {
     // Switch to reports tab and filter by student
     switchTab('reports');
     // You could add filtering logic here
+}
+
+// Delete course
+async function deleteCourse(courseId, courseName) {
+    if (!confirm(`Are you sure you want to delete the course "${courseName}"? This action cannot be undone.`)) {
+        return;
+    }
+    
+    try {
+        await apiCall(`/api/courses/${courseId}`, {
+            method: 'DELETE'
+        });
+        
+        // Remove from local array
+        courses = courses.filter(c => c._id !== courseId);
+        displayCourses();
+        populateCourseSelects();
+        showMessage('Course deleted successfully!', 'success');
+        loadDashboardData();
+    } catch (error) {
+        console.error('Failed to delete course:', error);
+        showMessage('Failed to delete course. Please try again.', 'error');
+    }
+}
+
+// Delete student
+async function deleteStudent(studentId, studentName) {
+    if (!confirm(`Are you sure you want to delete the student "${studentName}"? This action cannot be undone.`)) {
+        return;
+    }
+    
+    try {
+        await apiCall(`/api/students/${studentId}`, {
+            method: 'DELETE'
+        });
+        
+        // Remove from local array
+        students = students.filter(s => s._id !== studentId);
+        displayStudents();
+        populateStudentSelects();
+        showMessage('Student deleted successfully!', 'success');
+        loadDashboardData();
+    } catch (error) {
+        console.error('Failed to delete student:', error);
+        showMessage('Failed to delete student. Please try again.', 'error');
+    }
 }
 
 // Download attendance CSV
@@ -1006,6 +1072,8 @@ window.switchTab = switchTab;
 window.generateQRForCourse = generateQRForCourse;
 window.viewCourseAttendance = viewCourseAttendance;
 window.viewStudentAttendance = viewStudentAttendance;
+window.deleteCourse = deleteCourse;
+window.deleteStudent = deleteStudent;
 window.downloadAttendanceCSV = downloadAttendanceCSV;
 window.generateReports = generateReports;
 window.downloadAllReports = downloadAllReports;

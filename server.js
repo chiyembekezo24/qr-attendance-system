@@ -54,6 +54,29 @@ app.post('/api/courses', async (req, res) => {
   }
 });
 
+// Delete a course
+app.delete('/api/courses/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Check if course exists
+    const course = await Course.findById(id);
+    if (!course) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+    
+    // Delete related attendance records
+    await Attendance.deleteMany({ courseId: id });
+    
+    // Delete the course
+    await Course.findByIdAndDelete(id);
+    
+    res.json({ success: true, message: 'Course and related records deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Get all students
 app.get('/api/students', async (req, res) => {
   try {
@@ -67,11 +90,45 @@ app.get('/api/students', async (req, res) => {
 // Create new student
 app.post('/api/students', async (req, res) => {
   try {
+    // Check for duplicate student ID or email
+    const existingStudentById = await Student.findOne({ studentId: req.body.studentId });
+    if (existingStudentById) {
+      return res.status(400).json({ error: `Student ID "${req.body.studentId}" already exists` });
+    }
+    
+    const existingStudentByEmail = await Student.findOne({ email: req.body.email });
+    if (existingStudentByEmail) {
+      return res.status(400).json({ error: `Email "${req.body.email}" already exists` });
+    }
+    
     const student = new Student(req.body);
     await student.save();
     res.json(student);
   } catch (error) {
     res.status(400).json({ error: error.message });
+  }
+});
+
+// Delete a student
+app.delete('/api/students/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Check if student exists
+    const student = await Student.findById(id);
+    if (!student) {
+      return res.status(404).json({ error: 'Student not found' });
+    }
+    
+    // Delete related attendance records
+    await Attendance.deleteMany({ studentId: id });
+    
+    // Delete the student
+    await Student.findByIdAndDelete(id);
+    
+    res.json({ success: true, message: 'Student and related records deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 

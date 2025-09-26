@@ -105,14 +105,9 @@ A comprehensive QR code-based attendance system that allows lecturers to generat
 
 2. **Scan QR Code**
    - Point your camera at the QR code displayed by the instructor
-   - The system will automatically detect and process the QR code
+   - The system will automatically detect and process the QR code 
 
-3. **Manual Entry** (if camera doesn't work)
-   - Use the manual entry form
-   - Paste the QR code data provided by the instructor
-   - Enter your name and student ID
-
-4. **Mark Attendance**
+3. **Mark Attendance**
    - Fill in your details (name and student ID)
    - The system will automatically capture your location
    - Click "Mark Attendance" to complete the process
